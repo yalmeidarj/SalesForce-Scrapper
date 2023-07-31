@@ -23,15 +23,6 @@ start_time = datetime.datetime.now()
 def sleep(seconds):
     time.sleep(seconds)
 
-# d ={
-#   "ottawa": [
-#     "JKVLON05_1059A",
-#     "KNTAON16_2321A",
-#     "ORLNON06_1012A",
-#     "OTWAON01_1023A",
-#     "OTWAON01_5041A"
-#   ]
-# }
 
 fetch_report = []
 
@@ -49,15 +40,6 @@ xpath_iframe = "/html/body/div/div[2]/div/div[4]/div[2]/div/div[3]/select"
 iframe_name= "vfFrameId_1687454956510"
 
 
-
-# for testing
-test_location='ORLNON06_1012A'
-
-ottawa = ["JKVLON", "KNTAON", "ORLNON", "OTWAON", "STSVON" ]
-toronto = ["AURRON", "GMLYON", "KNBGON", "MAPLON", "RMHLON", "SFVLON", "STTNON", "TNHLON", "WDBGON", "BRKLON", "ORONON", "PCNGON", "PTPYON", "WTBYON" ]
-
-toronto_codes = []
-ottawa_codes = []
 
 with open('./LOCATIONS.json') as f:
     location_code_for_each_city = json.load(f)
@@ -231,19 +213,18 @@ def fetch_site_data(driver, site_name):
 service = Service("C:/Users/yalme/Desktop/gate/chromedriver.exe")
 driver = webdriver.Chrome(service=service)
 
-# driver.get("file:///C:/Users/yalme/Desktop/Start/Bell/vanilla/index.html")
 driver.get('https://bellconsent.my.salesforce.com/?ec=302&startURL=%2Fvisualforce%2Fsession%3Furl%3Dhttps%253A%252F%252Fbellconsent.lightning.force.com%252Flightning%252Fn%252FBell')
 
 
-username_box = driver.find_element(By.NAME, 'username')  # Replace 'username' with the actual element name
-password_box = driver.find_element(By.NAME, 'pw')  # Replace 'password' with the actual element name
+username_box = driver.find_element(By.NAME, 'username')  
+password_box = driver.find_element(By.NAME, 'pw')  
 
 username_box.send_keys(username)
 
 password_box.send_keys(password)
 
 
-login_button = driver.find_element(By.NAME, 'Login')  # Replace 'Login' with the actual element name
+login_button = driver.find_element(By.NAME, 'Login')  
 
 
 login_button.click()
