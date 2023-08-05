@@ -377,17 +377,19 @@ class FetcherBot:
 
             # Submit the form
             time.sleep(2)
-            submit_button = self.driver.find_element(
-                By.XPATH, "/html/body/div/div[2]/div/div/div[3]/div[2]/button[5]")
+            # Wait until the submit button is clickable
+            submit_button = WebDriverWait(self.driver, 40).until(
+                EC.element_to_be_clickable((By.XPATH, "/html/body/div/div[2]/div/div/div[3]/div[2]/button[5]")))
+
+            # submit_button = self.driver.find_element(
+            #     By.XPATH, "/html/body/div/div[2]/div/div/div[3]/div[2]/button[5]")
             submit_button.click()
 
-            # Wait for the form to submit
-            time.sleep(1)
             return True
 
         except Exception as e:
             print("Error:", e)
-            return None
+            return False
 
     def find_matching_addresses_from_table(self, data):
         """

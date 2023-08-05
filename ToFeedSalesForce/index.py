@@ -1,5 +1,7 @@
 from fetcher_bot import FetcherBot
+import os
 
+print(os.getcwd())
 
 brain = FetcherBot()
 bell_salesForce_url = "https://bellconsent.my.salesforce.com/?ec=302&startURL=%2Fvisualforce%2Fsession%3Furl%3Dhttps%253A%252F%252Fbellconsent.lightning.force.com%252Flightning%252Fn%252FBell"
@@ -15,7 +17,7 @@ site_to_be_updated = "TNHLON40_3104A"
 user = "yalmeida.rj@gmail.com"
 keyword = "rYeEsydWN!8808168eXkA9gV47A"
 
-csv_file_path = "./generatedBy_small.csv"
+csv_file_path = "./ToFeedSalesForce/generatedBy_small.csv"
 
 site_data = brain.process_csv_to_dict(file_path=csv_file_path)
 
@@ -41,10 +43,14 @@ def main():
                 pass
             else:
                 brain.switch_to_forms_iframe()
-                brain.update_site_form_1(data)
-
-                brain.switch_to_second_form_iframe()
-                brain.draw_signature()
+                # TODO: check if site is already updated
+                check = brain.update_site_form_1(data)
+                if not check:
+                    print('Error: Site not updated, unable to submit form 1')
+                    break
+                else:
+                    brain.switch_to_second_form_iframe()
+                    brain.draw_signature()
 
 
 main()
