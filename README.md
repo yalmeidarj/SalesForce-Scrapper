@@ -61,7 +61,7 @@ The script configures the WebDriver for Chrome and opens the Salesforce login pa
 The script executes the main data fetching process:
 
 - Displays a confirmation message to wait for login completion.
-- Iterates through the locations in `location_code_for_each_city["toronto"]`.
+- Iterates through the location in `location_code_for_each_city`, defined in `city_to_fetch`.
 - Selects a site, fetches data, cleans it, and saves it as a JSON file for each site.
 - Calculates the script's execution time.
 - Appends the script execution duration to the `fetch_report` list.
