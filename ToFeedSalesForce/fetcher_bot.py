@@ -614,7 +614,7 @@ class FetcherBot:
 
         """
         try:
-            WebDriverWait(driver, 10).until(
+            WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, self.second_form_iframe_xpath)))
             iframe = self.driver.find_element(
                 By.XPATH, self.second_form_iframe_xpath)
