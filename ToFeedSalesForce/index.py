@@ -47,10 +47,18 @@ def main():
                 check = brain.update_site_form_1(data)
                 if not check:
                     print('Error: Site not updated, unable to submit form 1')
-                    break
+                    pass
                 else:
-                    brain.switch_to_second_form_iframe()
-                    brain.draw_signature()
+                    brain.switch_to_forms_iframe()
+                    # check if form 2 is required
+                    if not brain.check_if_form_2_required():
+                        print('Form 1 updated successfully')
+                        pass
+                    else:
+                        brain.switch_to_second_form_iframe()
+                        brain.draw_signature()
+        print('All sites updated successfully')
 
 
-main()
+if __name__ == "__main__":
+    main()

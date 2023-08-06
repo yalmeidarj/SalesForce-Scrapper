@@ -11,18 +11,6 @@ from tkinter import messagebox
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 
-service = Service("C:/Users/yalme/Desktop/gate/chromedriver.exe")
-driver = webdriver.Chrome(service=service)
-
-
-draw_script = """
-var context = arguments[0].getContext('2d');
-context.beginPath();
-context.moveTo(50, 50);  # Start point
-context.lineTo(200, 200);  # End point
-context.stroke();
-"""
-
 
 class FetcherBot:
     """
@@ -76,7 +64,15 @@ class FetcherBot:
     """
 
     def __init__(self):
-        self.driver = driver
+        self.draw_script = """
+        var context = arguments[0].getContext('2d');
+        context.beginPath();
+        context.moveTo(50, 50);  # Start point
+        context.lineTo(200, 200);  # End point
+        context.stroke();
+        """
+        self.service = Service("C:/Users/yalme/Desktop/gate/chromedriver.exe")
+        self.driver = webdriver.Chrome(service=self.service)
         self.xpath_iframe_complete = "/html/body/div[4]/div[1]/section/div[1]/div/div[2]/div[1]/div/div/div/div/div/div/force-aloha-page/div/iframe"
         self.form_iframe_xpath = "/html/body/div[4]/div[1]/section/div[1]/div/div[2]/div[1]/div/div/div/div/div/div/force-aloha-page/div/iframe"
         self.second_form_iframe_xpath = "/html/body/div[4]/div[1]/section/div[1]/div/div[2]/div[1]/div/div/div/div/div/div/force-aloha-page/div/iframe"
@@ -356,7 +352,9 @@ class FetcherBot:
                     break
 
             # Select Status
-            status_select = self.driver.find_element(By.NAME, "status")
+            # status_select = self.driver.find_element(By.NAME, "status")
+            status_select = self.driver.find_element(
+                By.XPATH, "/html/body/div/div[2]/div/div/form/div[13]/div[3]/select")
             status_options = status_select.find_elements(
                 By.TAG_NAME, "option")
             for option in status_options:
@@ -458,12 +456,13 @@ class FetcherBot:
         # Return True if function executed without exception
         return True
 
-    def find_matching_address_from_table(self, data):
+    def find_matching_address_from_table(self, data, max_attempts=10):
         """
         ## Search for a single address
         ### Click the "Go To" button next to the matching address.
 
         - data: Dictionary containing 'streetNumber' and 'streetName' keys
+        - max_attempts: Maximum number of pages to search through (default is 10)
         - return: True if the address is found and method executes without exception, False otherwise
         """
 
@@ -475,13 +474,13 @@ class FetcherBot:
         self.click_100_views_button()
         print(f'Address to be updated: {address_to_update}')
 
-        while True:  # Keep looping until address is found or no more pages
+        # Loop through pages.  '_' is a throwaway variable used to count the number of iterations
+        for _ in range(max_attempts):
             try:
-                # Wait for page to load
-                time.sleep(1)
-
-                # Get all table rows
-                rows = self.driver.find_elements(By.TAG_NAME, 'tr')
+                # Wait for the table rows to be present
+                wait = WebDriverWait(self.driver, 10)
+                rows = wait.until(
+                    EC.presence_of_all_elements_located((By.TAG_NAME, 'tr')))
                 address_found = False
 
                 # Iterate through rows
@@ -512,13 +511,19 @@ class FetcherBot:
 
                 # If address not found on this page, click next and continue loop
                 if not self.click_next_page_button():
-                    print(f"Address {address_to_update} not found")
+                    print(
+                        f"Address {address_to_update} not found after {max_attempts} attempts")
                     return False  # Return False if address not found
 
             except Exception as e:
                 # Print exception and return False
                 print("Error:", e)
                 return False
+
+        # If the function has not returned by now, the address was not found in the given max_attempts
+        print(
+            f"Address {address_to_update} not found after {max_attempts} attempts")
+        return False
 
     def process_csv_to_dict(self, file_path: str) -> list:
         """
@@ -579,10 +584,26 @@ class FetcherBot:
                 EC.presence_of_element_located((By.XPATH, self.form_iframe_xpath)))
             iframe = driver.find_element(By.XPATH, self.form_iframe_xpath)
             # switch to selected iframe
-            driver.switch_to.frame(iframe)
+            self.driver.switch_to.frame(iframe)
             return True
         except Exception as e:
             print(e)
+            return False
+
+    def check_if_form_2_required(self):
+        """
+        ## Check if form 2 is required.
+
+        - return: True if the form 2 is required, False if an exception occurs during the process.
+
+        """
+        try:
+            canvas_button = self.driver.find_element(
+                By.XPATH, self.canvas_iframe_xpath)
+            return True
+        except Exception as e:
+            print(e)
+            print("\nForm 2 is not required")
             return False
 
     def switch_to_second_form_iframe(self):
@@ -595,10 +616,10 @@ class FetcherBot:
         try:
             WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, self.second_form_iframe_xpath)))
-            iframe = driver.find_element(
+            iframe = self.driver.find_element(
                 By.XPATH, self.second_form_iframe_xpath)
             # switch to selected iframe
-            driver.switch_to.frame(iframe)
+            self.driver.switch_to.frame(iframe)
             return True
         except Exception as e:
             print(e)
@@ -613,7 +634,7 @@ class FetcherBot:
         try:
             canvas = self.driver.find_element(
                 By.XPATH, self.canvas_iframe_xpath)
-            self.driver.execute_script(draw_script, canvas)
+            self.driver.execute_script(self.draw_script, canvas)
             time.sleep(2)
             save_button = self.driver.find_element(
                 By.XPATH, "/html/body/div/div[2]/div/div/form/div[7]/div[2]/button[3]")
@@ -622,3 +643,8 @@ class FetcherBot:
         except Exception as e:
             print(e)
             return False
+
+
+if __name__ == "__main__":
+    bot = FetcherBot()
+    # bot.go_to_url("https://bellconsent.my.salesforce.com/?ec=302&startURL=%2Fvisualforce%2Fsession%3Furl%3Dhttps%253A%252F%252Fbellconsent.lightning.force.com%252Flightning%252Fn%252FBell")
