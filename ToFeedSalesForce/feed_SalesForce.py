@@ -21,28 +21,10 @@ import os
 
 start_time = datetime.datetime.now()
 
-# Get the current working directory
-# current_working_directory = os.getcwd()
-# print("Current working directory:", current_working_directory)
-
-# # Change to a different directory
-# new_directory = "/ToFeedSalesForce/feed_SalesForce.py"
-# try:
-#     os.chdir(new_directory)
-#     # Confirm the working directory has changed
-#     new_working_directory = os.getcwd()
-#     print("New working directory:", new_working_directory)
-# except FileNotFoundError:
-#     print(f"Error: The directory {new_directory} was not found.")
-# except PermissionError:
-#     print(f"Error: You do not have permission to access {new_directory}.")
-
-path = './ToFeedSalesForce/generatedBy_small.csv'
-
 
 def read_csv_and_process(file_path):
     """
-    # Reads a CSV file 
+    # Reads a CSV file
     ## and processes its content into a list of dictionaries.
     Each dictionary contains information about a person, including their address,
     name, last name, phone number, email, type, and consent.
@@ -84,16 +66,14 @@ def read_csv_and_process(file_path):
         return dataList
 
 
-data = read_csv_and_process(path)
-site_name = data[0]['location']
-
-
 def sleep(seconds):
     time.sleep(seconds)
 
 
+path_to_data_source_csv = './ToFeedSalesForce/generatedBy_small.csv'
+data = read_csv_and_process(path_to_data_source_csv)
+site_name = data[0]['location']
 fetch_report = []
-
 # Read environment variables
 # username = os.getenv("USERNAME")
 # password = os.getenv("PASSWORD")
@@ -225,6 +205,59 @@ def click_next_page_button(driver):
         return False
 
 
+def get_table_data(driver, address,  data):
+
+    to_report = {
+        "site": "",
+        "function_name": "get_table_data",
+        "status": ""
+    }
+    table_data = []
+    try:
+        sleep(2)
+        rows = driver.find_elements(By.TAG_NAME, 'tr')
+        for row in rows:
+            row_data = row.find_element(By.XPATH, "//*[@data-title='Address']")
+            # if row_data in address:
+            go_to_button = row.find_element(By.TAG_NAME, "button")
+            go_to_button.click()
+            name = driver.find_element(By.NAME, "firstName")
+            last_name = driver.find_element(By.NAME, "lastName")
+            phone = driver.find_element(By.NAME, "phone")
+            email = driver.find_element(By.NAME, "email")
+            installation_type = driver.find_element(
+                By.NAME, "installationType")
+            consent = driver.find_element(
+                By.XPATH, "/html/body/div/div[2]/div/div/form/div[13]/div[3]/select")
+            # // consent notes
+            # Default Notes,  paper and letter delivery
+
+            consent_options = consent.find_elements(By.TAG_NAME, "option")
+            notes = driver.find_element(By.NAME, "note")
+            property_ownership_type = driver.find_element(
+                By.XPATH, "/html/body/div/div[2]/div/div/form/div[26]/div[3]/select")
+            save_button = driver.find_element(
+                By.XPATH, "/html/body/div/div[2]/div/div/div[3]/div[2]/button[5]")
+            name.send_keys(data.name)
+            last_name.send_keys(data.last_name)
+            phone.send_keys(data.phone)
+            email.send_keys(data.email)
+            installation_type.send_keys(data.installation_type)
+            notes.send_keys(data.notes)
+            if data.consent == "No":
+                consent_options.click(data.consent)
+                refusal_reason = driver.find_element(
+                    By.NAME, "refusalReason")
+                refusal_reason.send_keys(data.refusal_reason)
+            consent_options.click(data.consent)
+            property_ownership_type.send_keys("Owned")
+            save_button.click()
+    except Exception as e:
+        print(e)
+        return False
+    return True
+
+
 def fetch_site_data(driver, site_name):
     to_report = {
         "site": site_name,
@@ -302,82 +335,83 @@ def get_property_in_table(driver, data):
             print("Error:", e)
             return None
 
-    # # Wait for the form to load before sending data
-    # sleep(2)
 
-    # try:
-    #     # Fill in the form fields
-    #     driver.find_element(
-    #         By.XPATH, "/html/body/div/div[2]/div/div/form/div[3]/div[3]/input[1]").send_keys(data["name"])
-    #     driver.find_element(
-    #         By.XPATH, "/html/body/div/div[2]/div/div/form/div[3]/div[3]/input[2]").send_keys(data["lastName"])
-    #     driver.find_element(
-    #         By.XPATH, "/html/body/div/div[2]/div/div/form/div[5]/div[3]/input").send_keys(data["phone"])
-    #     driver.find_element(
-    #         By.XPATH, "/html/body/div/div[2]/div/div/form/div[6]/div[3]/input").send_keys(data["email"])
+# # Wait for the form to load before sending data
+# sleep(2)
 
-    #     # Select Language
-    #     language_select = driver.find_element(By.NAME, "language")
-    #     language_options = language_select.find_elements(By.TAG_NAME, "option")
-    #     for option in language_options:
-    #         if option.text.strip() == "English":
-    #             option.click()
-    #             break
+# try:
+#     # Fill in the form fields
+#     driver.find_element(
+#         By.XPATH, "/html/body/div/div[2]/div/div/form/div[3]/div[3]/input[1]").send_keys(data["name"])
+#     driver.find_element(
+#         By.XPATH, "/html/body/div/div[2]/div/div/form/div[3]/div[3]/input[2]").send_keys(data["lastName"])
+#     driver.find_element(
+#         By.XPATH, "/html/body/div/div[2]/div/div/form/div[5]/div[3]/input").send_keys(data["phone"])
+#     driver.find_element(
+#         By.XPATH, "/html/body/div/div[2]/div/div/form/div[6]/div[3]/input").send_keys(data["email"])
 
-    #     # Select Feed
-    #     feed_options = driver.find_elements(By.NAME, "feed")
-    #     for option in feed_options:
-    #         if option.get_attribute("value") == "Aerial":
-    #             option.click()
-    #             break
+#     # Select Language
+#     language_select = driver.find_element(By.NAME, "language")
+#     language_options = language_select.find_elements(By.TAG_NAME, "option")
+#     for option in language_options:
+#         if option.text.strip() == "English":
+#             option.click()
+#             break
 
-    #     # Select Installation Type
-    #     installation_type_select = driver.find_element(
-    #         By.NAME, "installationType")
-    #     installation_type_options = installation_type_select.find_elements(
-    #         By.TAG_NAME, "option")
-    #     for option in installation_type_options:
-    #         if option.text.strip() == data["type"]:
-    #             option.click()
-    #             break
+#     # Select Feed
+#     feed_options = driver.find_elements(By.NAME, "feed")
+#     for option in feed_options:
+#         if option.get_attribute("value") == "Aerial":
+#             option.click()
+#             break
 
-    #     # Select Consent
-    #     consent_select = driver.find_element(By.NAME, "Consent")
-    #     consent_options = consent_select.find_elements(By.TAG_NAME, "option")
-    #     for option in consent_options:
-    #         if option.text.strip() == data["consent"]:
-    #             option.click()
-    #             break
+#     # Select Installation Type
+#     installation_type_select = driver.find_element(
+#         By.NAME, "installationType")
+#     installation_type_options = installation_type_select.find_elements(
+#         By.TAG_NAME, "option")
+#     for option in installation_type_options:
+#         if option.text.strip() == data["type"]:
+#             option.click()
+#             break
 
-    #     # Submit the form
-    #     submit_button = driver.find_element(
-    #         By.XPATH, "//button[contains(text(), 'Submit')]")
-    #     submit_button.click()
+#     # Select Consent
+#     consent_select = driver.find_element(By.NAME, "Consent")
+#     consent_options = consent_select.find_elements(By.TAG_NAME, "option")
+#     for option in consent_options:
+#         if option.text.strip() == data["consent"]:
+#             option.click()
+#             break
 
-    #     # Wait for the form to submit
-    #     sleep(2)
+#     # Submit the form
+#     submit_button = driver.find_element(
+#         By.XPATH, "//button[contains(text(), 'Submit')]")
+#     submit_button.click()
 
-    #     # Get the success message or any relevant data after submitting the form
-    #     success_message = driver.find_element(
-    #         By.XPATH, "//div[contains(text(), 'Success!')]").text
-    #     table_data.append(success_message)
+#     # Wait for the form to submit
+#     sleep(2)
 
-    #     # Close the form
-    #     close_button = driver.find_element(
-    #         By.XPATH, "//button[contains(text(), 'Close')]")
-    #     close_button.click()
-    # except Exception as e:
-    #     print("Error:", e)
-    #     return None
+#     # Get the success message or any relevant data after submitting the form
+#     success_message = driver.find_element(
+#         By.XPATH, "//div[contains(text(), 'Success!')]").text
+#     table_data.append(success_message)
 
-    # return table_data
+#     # Close the form
+#     close_button = driver.find_element(
+#         By.XPATH, "//button[contains(text(), 'Close')]")
+#     close_button.click()
+# except Exception as e:
+#     print("Error:", e)
+#     return None
+
+# return table_data
 
 
 service = Service("C:/Users/yalme/Desktop/gate/chromedriver.exe")
 driver = webdriver.Chrome(service=service)
 
-driver.get('https://bellconsent.my.salesforce.com/?ec=302&startURL=%2Fvisualforce%2Fsession%3Furl%3Dhttps%253A%252F%252Fbellconsent.lightning.force.com%252Flightning%252Fn%252FBell')
 
+driver.get('https://bellconsent.my.salesforce.com/?ec=302&startURL=%2Fvisualforce%2Fsession%3Furl%3Dhttps%253A%252F%252Fbellconsent.lightning.force.com%252Flightning%252Fn%252FBell')
 
 username_box = driver.find_element(By.NAME, 'username')
 password_box = driver.find_element(By.NAME, 'pw')

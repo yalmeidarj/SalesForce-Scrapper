@@ -1,3 +1,4 @@
+# This is the main file to run the script to feed from the csv file to salesforce
 from fetcher_bot import FetcherBot
 import os
 
@@ -7,7 +8,7 @@ brain = FetcherBot()
 bell_salesForce_url = "https://bellconsent.my.salesforce.com/?ec=302&startURL=%2Fvisualforce%2Fsession%3Furl%3Dhttps%253A%252F%252Fbellconsent.lightning.force.com%252Flightning%252Fn%252FBell"
 
 site_to_be_updated = "TNHLON40_3104A"
-# site_data = [{}]
+
 
 # Read environment variables to get credentials
 # username = os.getenv("USERNAME")
